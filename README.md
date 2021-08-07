@@ -12,11 +12,7 @@ https://github.com/bagussatoto/Absensi-Bot
 
 Absensi memiliki fitur yang tidak dimiliki mesin absensi pada umumnya dan sistem ini adalah sistem **IoT Based** data yang direkam oleh mesin dikirimkan melalui jaringan internet secara realtime sehingga memungkinkan integrasi data dan pengolahan data secara terpusat dan dapat diakses darimana saja.
 
-!["HomePage"](https://nusabot.id/wp-content/uploads/2021/08/Screenshot-2021-08-06-at-10-37-00-Absensi-Nusabot.png "HomePage")
 
-!["RekapWiku"](https://nusabot.id/wp-content/uploads/2021/08/Screenshot-2021-08-06-at-10-39-12-Absensi-Nusabot.png "RekapWiku")
-
-!["RekapLaporan"](https://nusabot.id/wp-content/uploads/2021/08/Screenshot-2021-08-06-at-10-39-25-Absensi-Nusabot.png "RekapLaporan")
 
 - Web based sehingga aplikasi bisa dibuka dari perangkat apapun.
 - Perhitungan keterlambatan absensi (Masuk, Istirahat, Pulang).
