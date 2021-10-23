@@ -73,4 +73,4 @@ Nusabot Absensi dilisensikan diatas **[Creative Common BY-NC-SA](https://creativ
 
 Anda tidak dapat menggunakan ketentuan hukum yang secara hukum membatasi orang lain untuk melakukan hal-hal yang diizinkan oleh lisensi CC BY-NC-SA.
 
-Bagi Anda yang ingin melakukan komersialisasi pada proyek ini dapat menghubungi Nusabot untuk mendapatkan lisensi ekslusif.
+
