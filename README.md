@@ -32,7 +32,7 @@ Note: XAMPP hanya digunakan untuk pengembangan, tidak direkomendasikan jika ingi
 
 Pada langkah ini akan dijelaskan instalasi sistem menggunakan XAMPP:
 
-1. Unduh rilis stabil Nusabot Absensi dari laman https://github.com/bagussatoto/Absensi-Bot (jangan unduh repo nya karena bukan versi stable).
+1. Unduh rilis stabil Absensi-Bot Absensi dari laman https://github.com/bagussatoto/Absensi-Bot (jangan unduh repo nya karena bukan versi stable).
 2. Buat folder baru di dalam folder htdocs dari XAMPP.
 3. Ekstrak file zip yang sudah diunduh tadi ke dalam folder yang baru dibuat.
 4. Buat database baru, bisa gunakan **PHPMyAdmin** yang sudah disediakan XAMPP.
