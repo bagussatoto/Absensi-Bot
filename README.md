@@ -3,7 +3,7 @@
 **Absensi** adalah sistem absensi gratis yang dapat diterapkan untuk berbagai kepentingan absensi seperti pabrik, toko, kantor, dan sebagainya. Sistem ini termasuk manajemen absensi dan mesin absensi yang dapat dipelajari oleh siapapun.
 Sistem ini dibuat tanpa framework dan menggunakan bahasa struktural sehingga mudah dipelajari oleh pemula.
 
-Proyek ini adalah bagian dari proyek **FOSS** sebagai wujud kepedulian Nusabot terhadap pendidikan teknologi di Indonesia yang bertujuan untuk membuat dan mengembangkan proyek-proyek _open source_ yang memiliki kualitas baik sehingga dapat diterapkan secara real di industri sekaligus dapat dipelajari oleh seluruh masyarakat Indonesia.
+Proyek ini adalah bagian dari proyek **FOSS** sebagai wujud kepedulian saya terhadap pendidikan teknologi di Indonesia yang bertujuan untuk membuat dan mengembangkan proyek-proyek _open source_ yang memiliki kualitas baik sehingga dapat diterapkan secara real di industri sekaligus dapat dipelajari oleh seluruh masyarakat Indonesia.
 
 Untuk _source code_ dan skematik dapat mengunjungi repo berikut:
 https://github.com/bagussatoto/Absensi-Bot
@@ -71,6 +71,6 @@ Nusabot Absensi dilisensikan diatas **[Creative Common BY-NC-SA](https://creativ
 - **NonKomersial** - Anda tidak dapat menggunakan produk ini untuk kepentingan komersial (yaitu penggunaan yang ditujukan untuk memperoleh keuntungan komersial atau kompensasi dalam bentuk uang), kecuali jika Anda menjadikan produk ini untuk bahan ajar atau memberikan pelatihan penggunaan produk dan Anda menerima upah.
 - **Berbagi Serupa** - Apabila Anda menggubah, mengubah, atau membuat turunan dari proyek ini, Anda harus menyebarluaskan kontribusi Anda dibawah lisensi yang sama dengan produk ini
 
-Anda tidak dapat menggunakan ketentuan hukum yang secara hukum membatasi orang lain untuk melakukan hal-hal yang diizinkan oleh lisensi CC BY-NC-SA.
+Anda tidak dapat menggunakan ketentuan hukum yang secara hukum membatasi orang lain untuk melakukan hal-hal yang diizinkan oleh lisensi **CC BY-NC-SA**
 
 
