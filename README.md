@@ -1,4 +1,4 @@
-# [Sistem Absensi - Bot)
+# Sistem Absensi Bot
 
 **Absensi** adalah sistem absensi gratis yang dapat diterapkan untuk berbagai kepentingan absensi seperti pabrik, toko, kantor, dan sebagainya. Sistem ini termasuk manajemen absensi dan mesin absensi yang dapat dipelajari oleh siapapun.
 Sistem ini dibuat tanpa framework dan menggunakan bahasa struktural sehingga mudah dipelajari oleh pemula.
@@ -60,17 +60,15 @@ Siapapun dapat berkontribusi pada proyek ini mulai dari pemrograman, pembuakan b
 
 # Lisensi
 
-Nusabot Absensi dilisensikan diatas **[Creative Common BY-NC-SA](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.id "Creative Common BY-NC-SA")** dimana Anda diperbolehkan:
+Absensi - Bot di lisensikan dimana Anda diperbolehkan:
 
 - **Berbagi** - Menyalin dan menyebarluaskan kembali produk ini dalam bentuk format apapun
 - **Adaptasi** - Menggubah, mengubah, dan membuat turunan dari proyek ini.
 
 ### Berdasarkan ketentuan berikut:
 
-- **Atribusi** - Anda harus mencantumkan nama pencipta dan para kontributor serta mencantumkan tautan lisensi **CC BY-NC-SA** (tautan sudah ada di _footer_ pada aplikasi).
 - **NonKomersial** - Anda tidak dapat menggunakan produk ini untuk kepentingan komersial (yaitu penggunaan yang ditujukan untuk memperoleh keuntungan komersial atau kompensasi dalam bentuk uang), kecuali jika Anda menjadikan produk ini untuk bahan ajar atau memberikan pelatihan penggunaan produk dan Anda menerima upah.
 - **Berbagi Serupa** - Apabila Anda menggubah, mengubah, atau membuat turunan dari proyek ini, Anda harus menyebarluaskan kontribusi Anda dibawah lisensi yang sama dengan produk ini
 
-Anda tidak dapat menggunakan ketentuan hukum yang secara hukum membatasi orang lain untuk melakukan hal-hal yang diizinkan oleh lisensi **CC BY-NC-SA**
 
 
