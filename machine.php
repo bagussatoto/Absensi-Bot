@@ -2,6 +2,26 @@
 require_once(__DIR__ . "/etc/config.php");
 require_once(__DIR__ . "/etc/function.php");
 
+// Mendukung format JSON jika diminta melalui parameter format=json atau header Accept: application/json
+$is_json = (isset($_GET['format']) && $_GET['format'] === 'json') ||
+           (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+
+function sendResponse($status_code, $success, $message, $data = [], $is_json = false)
+{
+    http_response_code($status_code);
+    if ($is_json) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'success' => $success,
+            'message' => $message,
+            'data'    => $data
+        ]);
+    } else {
+        echo $message;
+    }
+    exit();
+}
+
 // Pastikan parameter GET tag dikirim
 if (isset($_GET['tag'])) {
     $waktu = gmdate("Y-m-d H:i:s");
@@ -10,14 +30,16 @@ if (isset($_GET['tag'])) {
     $tag = trim($_GET['tag'] ?? '');
     $kategori = (int)($_GET['kategori'] ?? 0);
 
-    // Ambil nomor induk dan cabang berdasarkan tag (prepared statements)
-    $nomor_induk = getNomorInduk($mysqli, $tag);
-    $cabang_id = getCabangGedung($mysqli, $tag);
+    // Ambil detail pengguna berdasarkan tag (prepared statements)
+    $pengguna = getDetailPengguna($mysqli, $tag);
 
-    if (!$nomor_induk) {
-        http_response_code(404);
-        die("Tag tidak terdaftar");
+    if (!$pengguna) {
+        sendResponse(404, false, "Tag tidak terdaftar", [], $is_json);
     }
+
+    $nomor_induk = $pengguna['nomor_induk'];
+    $nama = $pengguna['nama'];
+    $cabang_id = $pengguna['cabang_gedung'];
 
     // Tentukan kolom jam maksimal berdasarkan kategori
     $kolom_kategori = [
@@ -28,8 +50,7 @@ if (isset($_GET['tag'])) {
     ];
 
     if (!isset($kolom_kategori[$kategori])) {
-        http_response_code(400);
-        die("Kategori tidak valid");
+        sendResponse(400, false, "Kategori tidak valid", [], $is_json);
     }
 
     $jam_maksimal = getAbsenMaks($mysqli, $kolom_kategori[$kategori], $cabang_id);
@@ -49,44 +70,34 @@ if (isset($_GET['tag'])) {
         $kat_str = (string)$kategori;
         mysqli_stmt_bind_param($stmt, "sssss", $nomor_induk, $waktu, $maksimal, $kat_str, $idmesin);
         if (mysqli_stmt_execute($stmt)) {
-            echo "BERHASIL";
+            sendResponse(200, true, "BERHASIL", [
+                'nomor_induk' => $nomor_induk,
+                'nama'        => $nama,
+                'waktu'       => $waktu,
+                'kategori'    => $kategori,
+                'idmesin'     => $idmesin
+            ], $is_json);
         } else {
-            http_response_code(500);
-            echo "Gagal mencatat absensi: " . mysqli_stmt_error($stmt);
+            sendResponse(500, false, "Gagal mencatat absensi: " . mysqli_stmt_error($stmt), [], $is_json);
         }
         mysqli_stmt_close($stmt);
     } else {
-        http_response_code(500);
-        echo "Kesalahan database: " . mysqli_error($mysqli);
+        sendResponse(500, false, "Kesalahan database: " . mysqli_error($mysqli), [], $is_json);
     }
+} else {
+    sendResponse(400, false, "Parameter tag tidak ditemukan", [], $is_json);
 }
 
-function getNomorInduk($mysqli, $tag)
+function getDetailPengguna($mysqli, $tag)
 {
-    $stmt = mysqli_prepare($mysqli, "SELECT nomor_induk FROM pengguna WHERE tag = ? LIMIT 1");
+    $stmt = mysqli_prepare($mysqli, "SELECT nomor_induk, nama, cabang_gedung FROM pengguna WHERE tag = ? LIMIT 1");
     if ($stmt) {
         mysqli_stmt_bind_param($stmt, "s", $tag);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
-        if ($row = mysqli_fetch_row($result)) {
+        if ($row = mysqli_fetch_assoc($result)) {
             mysqli_stmt_close($stmt);
-            return $row[0];
-        }
-        mysqli_stmt_close($stmt);
-    }
-    return null;
-}
-
-function getCabangGedung($mysqli, $tag)
-{
-    $stmt = mysqli_prepare($mysqli, "SELECT cabang_gedung FROM pengguna WHERE tag = ? LIMIT 1");
-    if ($stmt) {
-        mysqli_stmt_bind_param($stmt, "s", $tag);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        if ($row = mysqli_fetch_row($result)) {
-            mysqli_stmt_close($stmt);
-            return $row[0];
+            return $row;
         }
         mysqli_stmt_close($stmt);
     }
@@ -95,7 +106,6 @@ function getCabangGedung($mysqli, $tag)
 
 function getAbsenMaks($mysqli, $kolom, $id)
 {
-    // Whitelist kolom yang diizinkan
     $allowed_cols = ["jam_masuk", "istirahat_mulai", "istirahat_selesai", "jam_pulang"];
     if (!in_array($kolom, $allowed_cols, true)) {
         return null;
