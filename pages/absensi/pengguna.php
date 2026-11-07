@@ -3,6 +3,9 @@ if (isset($_GET['nomor_induk'])) {
 
     require_once("../../etc/config.php");
     require_once("../../etc/function.php");
+    require_once("../../session.php");
+
+    $nomor_induk_target = trim($_GET['nomor_induk'] ?? '');
 
     //buat array untuk tanggal tidak absen
     $tanggal1 = array();
@@ -18,35 +21,53 @@ if (isset($_GET['nomor_induk'])) {
     $cuti = array();
 
     //ambil hari libur
-    $hariLibur = gethariLibur($mysqli, $_GET['nomor_induk']);
-    $array_hariLibur = explode(",", $hariLibur);
+    $hariLibur = gethariLibur($mysqli, $nomor_induk_target);
+    $array_hariLibur = explode(",", (string)$hariLibur);
     array_unshift($array_hariLibur,""); //tidak tahu kenapa search dimulai dari index 1, maka dari itu index 0 harus diisi. Nantinya akan digunakan untuk mengambil bukan hari kerja
 
     if (!isset($_POST['tampilkan'])) {
         $firstDay = date('Y-m-01');
         $lastDay = date('Y-m-t');
-        $result = mysqli_query($mysqli, "SELECT * FROM absensi where nomor_induk = '{$_GET['nomor_induk']}' AND (absen BETWEEN '$firstDay' AND '$lastDay')");
+        $stmt = mysqli_prepare($mysqli, "SELECT * FROM absensi WHERE nomor_induk = ? AND (absen BETWEEN ? AND ?)");
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "sss", $nomor_induk_target, $firstDay, $lastDay);
+            mysqli_stmt_execute($stmt);
+            $result = mysqli_stmt_get_result($stmt);
+        }
         $formCabang = 1;
     } else {
-        $firstDay = $_POST['awal'];
-        $lastDay = $_POST['akhir'];
-        if ($_POST['kategori'] == 0) {
-            $result = mysqli_query($mysqli, "
+        $firstDay = trim($_POST['awal'] ?? date('Y-m-01'));
+        $lastDay = trim($_POST['akhir'] ?? date('Y-m-t'));
+        $kategori = (int)($_POST['kategori'] ?? 0);
+
+        if ($kategori === 0) {
+            $stmt = mysqli_prepare($mysqli, "
             SELECT absensi.nomor_induk, pengguna.cabang_gedung, absensi.absen, absensi.kategori, absensi.idmesin, absensi.absen_maks
             FROM absensi
-            INNER JOIN pengguna ON absensi.nomor_induk=pengguna.nomor_induk
-            WHERE (absensi.absen BETWEEN '{$_POST['awal']}' AND '{$_POST['akhir']}')
+            INNER JOIN pengguna ON absensi.nomor_induk = pengguna.nomor_induk
+            WHERE absensi.nomor_induk = ? AND (absensi.absen BETWEEN ? AND ?)
             ");
+            if ($stmt) {
+                mysqli_stmt_bind_param($stmt, "sss", $nomor_induk_target, $firstDay, $lastDay);
+                mysqli_stmt_execute($stmt);
+                $result = mysqli_stmt_get_result($stmt);
+            }
         } else {
-            $result = mysqli_query($mysqli, "
+            $stmt = mysqli_prepare($mysqli, "
             SELECT absensi.nomor_induk, pengguna.cabang_gedung, absensi.absen, absensi.kategori, absensi.idmesin, absensi.absen_maks
             FROM absensi
-            INNER JOIN pengguna ON absensi.nomor_induk=pengguna.nomor_induk
-            WHERE absensi.kategori = '{$_POST['kategori']}' AND (absensi.absen BETWEEN '{$_POST['awal']}' AND '{$_POST['akhir']}')
+            INNER JOIN pengguna ON absensi.nomor_induk = pengguna.nomor_induk
+            WHERE absensi.nomor_induk = ? AND absensi.kategori = ? AND (absensi.absen BETWEEN ? AND ?)
             ");
+            if ($stmt) {
+                $kat_str = (string)$kategori;
+                mysqli_stmt_bind_param($stmt, "ssss", $nomor_induk_target, $kat_str, $firstDay, $lastDay);
+                mysqli_stmt_execute($stmt);
+                $result = mysqli_stmt_get_result($stmt);
+            }
         }
 
-        if ($_POST['kategori'] == 0) {
+        if ($kategori === 0) {
             $formKategori = "Semua Kategori";
         } else {
             if ($_POST['kategori'] == 1) {
