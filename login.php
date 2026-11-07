@@ -129,6 +129,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
             </div>
           </div>
         </form>
+        <div class="mt-3 text-center">
+          <a href="home.php" class="text-sm text-muted"><i class="fas fa-arrow-left mr-1"></i> Kembali ke Halaman Utama</a>
+        </div>
       </div>
     </div>
   </div>
