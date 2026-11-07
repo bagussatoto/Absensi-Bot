@@ -27,22 +27,29 @@ Absensi memiliki fitur yang tidak dimiliki mesin absensi pada umumnya dan sistem
 
 ## Instalasi
 
-Aplikasi ini membutuhkan sebuah komputer yang dijadikan sebagai server (spesifikasi rendah pun tidak masalah sama sekali) yang sudah terpasang Web Server, PHP, dan MySQL / MariaDB. Anda dapat menggunakan [XAMPP](https://www.apachefriends.org/download.html "XAMPP") untuk mempermudah instalasi dan pengembangan.
-Note: XAMPP hanya digunakan untuk pengembangan, tidak direkomendasikan jika ingin digunakan untuk _production use_ atau di tingkat industri.
+Aplikasi ini membutuhkan sebuah komputer/server lokal yang sudah terpasang Web Server (Apache/Nginx), PHP (mendukung **PHP 7.4 hingga PHP 8.x**), dan MySQL / MariaDB. Anda dapat menggunakan [XAMPP](https://www.apachefriends.org/download.html "XAMPP") untuk mempermudah instalasi dan pengembangan.
+*Catatan: XAMPP disarankan untuk lingkungan pengembangan (development).*
 
 Pada langkah ini akan dijelaskan instalasi sistem menggunakan XAMPP:
 
-1. Unduh rilis stabil Absensi-Bot Absensi dari laman https://github.com/bagussatoto/Absensi-Bot (jangan unduh repo nya karena bukan versi stable).
-2. Buat folder baru di dalam folder htdocs dari XAMPP.
-3. Ekstrak file zip yang sudah diunduh tadi ke dalam folder yang baru dibuat.
-4. Buat database baru, bisa gunakan **PHPMyAdmin** yang sudah disediakan XAMPP.
-5. Impor database kedalam database yang baru saja dibuat, file impor berada di **/db/absensi.sql**
-6. Ubah pengaturan koneksi basis data pada file **/etc/config.php**, sesuaikan dengan pengaturan XAMPP Anda (pengaturan default yang dibuat oleh Bagus Satoto adalah pengaturan default untuk XAMPP, Anda hanya perlu mengubah `$databaseName`menjadi nama basis data yang sudah Anda buat).
-7. Ubah juga pengaturan koneksi basis data untuk melakukan absensi dari mesin pada file **machine.php**.
-8. Buka app melalui web browser dan login menggunakan:
-   Nomor Induk: _123_
-   Password: _admin_
-9. Tambahkan pengguna baru, nomor induk 0 adalah pengguna kunci yang tidak bisa dihapus oleh karena itu Anda harus mengganti password nya.
+1. Unduh rilis stabil Absensi-Bot dari tab [Releases](https://github.com/bagussatoto/Absensi-Bot/releases) di GitHub.
+2. Buat folder baru di dalam folder `htdocs` dari XAMPP (misal: `absensi`).
+3. Ekstrak seluruh isi file rilis ke dalam folder tersebut.
+4. Buat database baru (misalnya bernama `absensi`), bisa melalui **phpMyAdmin**.
+5. Impor file database skema awal yang berada di **/db/absensi.sql**.
+6. Sesuaikan pengaturan koneksi database pada file **/etc/config.php** (kredensial host, username, password, dan nama basis data Anda).
+7. Buka aplikasi melalui web browser (contoh: `http://localhost/absensi/login.php`) dan login menggunakan akun default:
+   - **Nomor Induk**: `123`
+   - **Password**: `admin`
+8. Setelah berhasil masuk, Anda dapat menambahkan pengguna baru atau mengubah password default pada menu Profil demi keamanan.
+
+## Catatan Rilis & Keamanan (v1.0.0)
+
+Pembaruan arsitektur dan modernisasi keamanan:
+- **Prepared Statements**: Mengamankan seluruh query dari potensi celah *SQL Injection*.
+- **Password Hashing Modern**: Mengganti MD5 lawas dengan algoritma `password_hash()` bawaan PHP, dilengkapi mekanisme *auto-rehash* saat login untuk migrasi akun lama.
+- **Proteksi Session & Anti-XSS**: Memperkuat autentikasi sesi internal serta fungsi sanitasi output.
+- **Kompatibilitas PHP 8.x**: Memperbaiki deprecation warnings dan standarisasi konfigurasi database terpusat.
 
 ## Dukungan Web Browser
 

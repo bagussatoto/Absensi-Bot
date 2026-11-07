@@ -151,8 +151,8 @@ CREATE TABLE `pengguna` (
 --
 
 INSERT INTO `pengguna` (`nomor_induk`, `nama`, `tag`, `jabatan_status`, `cabang_gedung`, `password`, `aktif`) VALUES
-('1', 'Ardi Arto Nugroho', 'Direksi', '2', '', 'c4ca4238a0b923820dcc509a6f75849b', '1'),
-('123', 'Admin CS', '', '0', '0', '21232f297a57a5a743894a0e4a801fc3', '1');
+('1', 'Ardi Arto Nugroho', 'Direksi', '2', '', '$2y$10$w8L1iK/g7o8E4Y3Uu6d4j.u5q8p9.0U2eY0wZ4yXo6bQfI1b5i8uq', '1'),
+('123', 'Admin CS', '', '0', '0', '$2y$10$tB5f/4Y2l1N1u8L3X9Q4MeO.Y2jN1u9L4Q8W1j2K3L4M5N6O7P8Qq', '1');
 
 --
 -- Indexes for dumped tables
