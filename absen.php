@@ -1,11 +1,27 @@
 <?php
 require_once("etc/config.php");
-$id = 1;
-if (isset($_POST['tag'])) {
-    $result =  mysqli_fetch_row(mysqli_query($mysqli, "SELECT nomor_induk, nama FROM pengguna where tag = '{$_POST['tag']}'"));
-    $nama = $result[1] . " (" . $result[0] . ")";
+require_once("etc/function.php");
 
-    $id = $_POST['cabang_gedung'];
+$id = 1;
+$nama = "";
+$nama_zona = "WIB";
+
+if (isset($_POST['tag'])) {
+    $tag = trim($_POST['tag'] ?? '');
+    $stmt = mysqli_prepare($mysqli, "SELECT nomor_induk, nama FROM pengguna WHERE tag = ? LIMIT 1");
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "s", $tag);
+        mysqli_stmt_execute($stmt);
+        $res = mysqli_stmt_get_result($stmt);
+        if ($result = mysqli_fetch_row($res)) {
+            $nama = $result[1] . " (" . $result[0] . ")";
+        } else {
+            $nama = "Tag tidak terdaftar";
+        }
+        mysqli_stmt_close($stmt);
+    }
+
+    $id = (int)($_POST['cabang_gedung'] ?? 1);
 }
 ?>
 
@@ -32,7 +48,7 @@ if (isset($_POST['tag'])) {
             <b id="ct"></b> <?php echo $nama_zona ?>
         </div>
         <!-- User name -->
-        <div class="lockscreen-name"><?php echo $nama ?></div>
+        <div class="lockscreen-name"><?php echo e($nama) ?></div>
 
         <!-- START LOCK SCREEN ITEM -->
         <form method="post" action="">

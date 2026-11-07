@@ -1,18 +1,23 @@
 <?php
 require_once("etc/config.php");
+require_once("etc/function.php");
+
+$nama = "";
 if (isset($_POST['tag'])) {
-    $sql = "SELECT nomor_induk, nama FROM pengguna where tag = '{$_POST['tag']}'";
-    $result = mysqli_query($mysqli, $sql);
-    $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
-
-    $count = mysqli_num_rows($result);
-    if ($count == 1) {
-        $nama = $row['nama'] . " (" . $row['nomor_induk'] . ")";
-      } else {
-        $nama = "Tag tidak terdaftar";
-      }
+    $tag = trim($_POST['tag'] ?? '');
+    $stmt = mysqli_prepare($mysqli, "SELECT nomor_induk, nama FROM pengguna WHERE tag = ? LIMIT 1");
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "s", $tag);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        if ($row = mysqli_fetch_assoc($result)) {
+            $nama = $row['nama'] . " (" . $row['nomor_induk'] . ")";
+        } else {
+            $nama = "Tag tidak terdaftar";
+        }
+        mysqli_stmt_close($stmt);
+    }
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -38,7 +43,7 @@ if (isset($_POST['tag'])) {
             <b>Tempelkan</b> Kartu / Tag
         </div>
         <!-- User name -->
-        <div class="lockscreen-name"><?php echo $nama ?></div>
+        <div class="lockscreen-name"><?php echo e($nama) ?></div>
 
         
 
