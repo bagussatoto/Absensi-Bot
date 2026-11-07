@@ -1,21 +1,46 @@
 <?php
 require_once("../../etc/config.php");
 require_once("../../etc/function.php");
+require_once("../../session.php");
 
 if (isset($_POST['tambah'])) {
-  $pass = md5($_POST['nomor_induk']);
-  $result = mysqli_query($mysqli, "INSERT INTO pengguna(nomor_induk,nama,tag,jabatan_status,cabang_gedung,password) VALUES('{$_POST['nomor_induk']}','{$_POST['nama']}','{$_POST['tag']}','{$_POST['jabatan_status']}','{$_POST['cabang_gedung']}','$pass')");
-  $successAdd = 1;
+  $nomor_induk = trim($_POST['nomor_induk'] ?? '');
+  $nama = trim($_POST['nama'] ?? '');
+  $tag = trim($_POST['tag'] ?? '');
+  $jabatan_status = trim($_POST['jabatan_status'] ?? '');
+  $cabang_gedung = trim($_POST['cabang_gedung'] ?? '');
+  $pass = password_hash($nomor_induk, PASSWORD_DEFAULT);
+
+  $stmt = mysqli_prepare($mysqli, "INSERT INTO pengguna(nomor_induk, nama, tag, jabatan_status, cabang_gedung, password) VALUES(?, ?, ?, ?, ?, ?)");
+  if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "ssssss", $nomor_induk, $nama, $tag, $jabatan_status, $cabang_gedung, $pass);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    $successAdd = 1;
+  }
 }
 
 if (isset($_POST['ubah'])) {
-  $result = mysqli_query($mysqli, "UPDATE pengguna SET nomor_induk='{$_POST['nomor_induk']}', nama='{$_POST['nama']}',tag='{$_POST['tag']}',jabatan_status='{$_POST['jabatan_status']}',cabang_gedung='{$_POST['cabang_gedung']}' WHERE nomor_induk='{$_POST['nomor_induk_lama']}'");
-  $successEdit = 1;
+  $nomor_induk = trim($_POST['nomor_induk'] ?? '');
+  $nama = trim($_POST['nama'] ?? '');
+  $tag = trim($_POST['tag'] ?? '');
+  $jabatan_status = trim($_POST['jabatan_status'] ?? '');
+  $cabang_gedung = trim($_POST['cabang_gedung'] ?? '');
+  $nomor_induk_lama = trim($_POST['nomor_induk_lama'] ?? '');
+
+  $stmt = mysqli_prepare($mysqli, "UPDATE pengguna SET nomor_induk = ?, nama = ?, tag = ?, jabatan_status = ?, cabang_gedung = ? WHERE nomor_induk = ?");
+  if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "ssssss", $nomor_induk, $nama, $tag, $jabatan_status, $cabang_gedung, $nomor_induk_lama);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    $successEdit = 1;
+  }
 }
 
 if (isset($_GET['id'])) {
-  $nama = getAnyTampil($mysqli, 'nama', 'pengguna', 'nomor_induk', $_GET['id']);
-  $aktif = getAnyTampil($mysqli, 'aktif', 'pengguna', 'nomor_induk', $_GET['id']);
+  $id_target = trim($_GET['id']);
+  $nama = getAnyTampil($mysqli, 'nama', 'pengguna', 'nomor_induk', $id_target);
+  $aktif = getAnyTampil($mysqli, 'aktif', 'pengguna', 'nomor_induk', $id_target);
   if ($aktif == 1) {
     $aktif = 0;
     $aktifText = "non-aktif";
@@ -23,8 +48,14 @@ if (isset($_GET['id'])) {
     $aktif = 1;
     $aktifText = "aktif";
   }
-  $result = mysqli_query($mysqli, "UPDATE pengguna SET aktif='$aktif' WHERE nomor_induk='{$_GET['id']}'");
-  $successDelete = 1;
+  $stmt = mysqli_prepare($mysqli, "UPDATE pengguna SET aktif = ? WHERE nomor_induk = ?");
+  if ($stmt) {
+    $aktif_str = (string)$aktif;
+    mysqli_stmt_bind_param($stmt, "ss", $aktif_str, $id_target);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    $successDelete = 1;
+  }
 }
 
 $result = mysqli_query($mysqli, "SELECT * FROM pengguna");
@@ -118,12 +149,12 @@ $result = mysqli_query($mysqli, "SELECT * FROM pengguna");
                         }
                       ?>
                         <tr>
-                          <td><?php echo $data['nomor_induk'] ?></td>
-                          <td><a href="../absensi/pengguna.php?nomor_induk=<?php echo $data['nomor_induk'] ?>"><?php echo $data['nama'] ?></a></td>
-                          <td><?php echo getAnyTampil($mysqli, "jabatan_status", "jabatan_status", "id", $data['jabatan_status']) ?></td>
-                          <td><?php echo getAnyTampil($mysqli, "lokasi", "cabang_gedung", "id", $data['cabang_gedung']) ?></td>
-                          <td><?php echo $aktif ?></td>
-                          <td><a href="edit.php?id=<?= $data['nomor_induk'] ?>"><i class="fas fa-edit"></i></a> | <a href="index.php?id=<?= $data['nomor_induk'] ?>"><i class="fas fa-minus-circle"></i></a></td>
+                          <td><?php echo e($data['nomor_induk']) ?></td>
+                          <td><a href="../absensi/pengguna.php?nomor_induk=<?php echo urlencode($data['nomor_induk']) ?>"><?php echo e($data['nama']) ?></a></td>
+                          <td><?php echo e(getAnyTampil($mysqli, "jabatan_status", "jabatan_status", "id", $data['jabatan_status'])) ?></td>
+                          <td><?php echo e(getAnyTampil($mysqli, "lokasi", "cabang_gedung", "id", $data['cabang_gedung'])) ?></td>
+                          <td><?php echo e($aktif) ?></td>
+                          <td><a href="edit.php?id=<?= urlencode($data['nomor_induk']) ?>"><i class="fas fa-edit"></i></a> | <a href="index.php?id=<?= urlencode($data['nomor_induk']) ?>"><i class="fas fa-minus-circle"></i></a></td>
                         </tr>
                       <?php } ?>
                     </tbody>

@@ -1,20 +1,39 @@
 <?php
 require_once("../../etc/config.php");
 require_once("../../etc/function.php");
+require_once("../../session.php");
 
 if (isset($_POST['tambah'])) {
-  $result = mysqli_query($mysqli, "INSERT INTO jabatan_status(jabatan_status,hak_akses) VALUES('{$_POST['jabatan_status']}','{$_POST['hak_akses']}')");
-  $successAdd = 1;
+  $jabatan_status = trim($_POST['jabatan_status'] ?? '');
+  $hak_akses = trim($_POST['hak_akses'] ?? '');
+
+  $stmt = mysqli_prepare($mysqli, "INSERT INTO jabatan_status(jabatan_status, hak_akses) VALUES(?, ?)");
+  if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "ss", $jabatan_status, $hak_akses);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    $successAdd = 1;
+  }
 }
 
 if (isset($_POST['ubah'])) {
-  $result = mysqli_query($mysqli, "UPDATE jabatan_status SET jabatan_status='{$_POST['jabatan_status']}',hak_akses='{$_POST['hak_akses']}' WHERE id='{$_POST['id']}'");
-  $successEdit = 1;
+  $jabatan_status = trim($_POST['jabatan_status'] ?? '');
+  $hak_akses = trim($_POST['hak_akses'] ?? '');
+  $id = (int)($_POST['id'] ?? 0);
+
+  $stmt = mysqli_prepare($mysqli, "UPDATE jabatan_status SET jabatan_status = ?, hak_akses = ? WHERE id = ?");
+  if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "ssi", $jabatan_status, $hak_akses, $id);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    $successEdit = 1;
+  }
 }
 
 if (isset($_GET['id'])) {
-  $nama = getAnyTampil($mysqli, 'jabatan_status', 'jabatan_status', 'id', $_GET['id']);
-  $aktif = getAnyTampil($mysqli, 'aktif', 'jabatan_status', 'id', $_GET['id']);
+  $id_target = (int)$_GET['id'];
+  $nama = getAnyTampil($mysqli, 'jabatan_status', 'jabatan_status', 'id', $id_target);
+  $aktif = getAnyTampil($mysqli, 'aktif', 'jabatan_status', 'id', $id_target);
   if ($aktif == 1) {
     $aktif = 0;
     $aktifText = "non-aktif";
@@ -22,8 +41,14 @@ if (isset($_GET['id'])) {
     $aktif = 1;
     $aktifText = "aktif";
   }
-  $result = mysqli_query($mysqli, "UPDATE jabatan_status SET aktif='$aktif' WHERE id='{$_GET['id']}'");
-  $successDelete = 1;
+  $stmt = mysqli_prepare($mysqli, "UPDATE jabatan_status SET aktif = ? WHERE id = ?");
+  if ($stmt) {
+    $aktif_str = (string)$aktif;
+    mysqli_stmt_bind_param($stmt, "si", $aktif_str, $id_target);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    $successDelete = 1;
+  }
 }
 
 $result = mysqli_query($mysqli, "SELECT * FROM jabatan_status");

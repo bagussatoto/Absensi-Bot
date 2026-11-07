@@ -1,26 +1,50 @@
 <?php
 require_once("../../etc/config.php");
 require_once("../../etc/function.php");
+require_once("../../session.php");
 
 if (isset($_POST['tambah'])) {
-  $result = mysqli_query($mysqli, "INSERT INTO libur_khusus(tanggal,keterangan) VALUES('{$_POST['tanggal']}','{$_POST['keterangan']}')");
-  $successAdd = 1;
+  $tanggal = trim($_POST['tanggal'] ?? '');
+  $keterangan = trim($_POST['keterangan'] ?? '');
+
+  $stmt = mysqli_prepare($mysqli, "INSERT INTO libur_khusus(tanggal, keterangan) VALUES(?, ?)");
+  if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "ss", $tanggal, $keterangan);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    $successAdd = 1;
+  }
 }
 
 if (isset($_POST['ubah'])) {
-  $result = mysqli_query($mysqli, "UPDATE libur_khusus SET tanggal='{$_POST['tanggal']}',keterangan='{$_POST['keterangan']}' WHERE id='{$_POST['id']}'");
-  $successEdit = 1;
+  $tanggal = trim($_POST['tanggal'] ?? '');
+  $keterangan = trim($_POST['keterangan'] ?? '');
+  $id = (int)($_POST['id'] ?? 0);
+
+  $stmt = mysqli_prepare($mysqli, "UPDATE libur_khusus SET tanggal = ?, keterangan = ? WHERE id = ?");
+  if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "ssi", $tanggal, $keterangan, $id);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    $successEdit = 1;
+  }
 }
 
 if (isset($_GET['id'])) {
-  $keterangan = getAnyTampil($mysqli, 'keterangan', 'libur_khusus', 'id', $_GET['id']);
-  $tanggal = getAnyTampil($mysqli, 'tanggal', 'libur_khusus', 'id', $_GET['id']);
+  $id_target = (int)$_GET['id'];
+  $keterangan = getAnyTampil($mysqli, 'keterangan', 'libur_khusus', 'id', $id_target);
+  $tanggal = getAnyTampil($mysqli, 'tanggal', 'libur_khusus', 'id', $id_target);
 
-  $result = mysqli_query($mysqli, "DELETE FROM libur_khusus WHERE id='{$_GET['id']}'");
-  $successDelete = 1;
+  $stmt = mysqli_prepare($mysqli, "DELETE FROM libur_khusus WHERE id = ?");
+  if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "i", $id_target);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    $successDelete = 1;
+  }
 }
 
-$result = mysqli_query($mysqli, "SELECT * FROM libur_khusus limit 500");
+$result = mysqli_query($mysqli, "SELECT * FROM libur_khusus LIMIT 500");
 ?>
 
 <!DOCTYPE html>

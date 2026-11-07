@@ -1,67 +1,71 @@
 <?php
 require_once("../../etc/config.php");
 require_once("../../etc/function.php");
+require_once("../../session.php");
 
 if (isset($_POST['tambah'])) {
-  if ($_POST['zona_waktu'] == 1) {
+  $zona_waktu = (int)($_POST['zona_waktu'] ?? 1);
+  if ($zona_waktu == 1) {
     $seconds = "-25200 seconds";
-  } else if ($_POST['zona_waktu'] == 2) {
+  } else if ($zona_waktu == 2) {
     $seconds = "-28800 seconds";
   } else {
     $seconds = "-32400 seconds";
   }
 
-  $jam_masuk = date('H:i:s', strtotime($seconds, strtotime(date($_POST['jam_masuk']))));
-  $istirahat_mulai = date('H:i:s', strtotime($seconds, strtotime(date($_POST['istirahat_mulai']))));
-  $istirahat_selesai = date('H:i:s', strtotime($seconds, strtotime(date($_POST['istirahat_selesai']))));
-  $jam_pulang = date('H:i:s', strtotime($seconds, strtotime(date($_POST['jam_pulang']))));
+  $jam_masuk = date('H:i:s', strtotime($seconds, strtotime($_POST['jam_masuk'] ?? '08:00:00')));
+  $istirahat_mulai = date('H:i:s', strtotime($seconds, strtotime($_POST['istirahat_mulai'] ?? '12:00:00')));
+  $istirahat_selesai = date('H:i:s', strtotime($seconds, strtotime($_POST['istirahat_selesai'] ?? '13:00:00')));
+  $jam_pulang = date('H:i:s', strtotime($seconds, strtotime($_POST['jam_pulang'] ?? '17:00:00')));
 
-  $hari_libur = $_POST['hari_libur'];
-  $pilihan_kerja = "";
-  for ($i = 0; $i < count($hari_libur); $i++) {
-    if ($i == count($hari_libur) - 1) {
-      $pilihan_kerja = $pilihan_kerja . $hari_libur[$i];
-    } else {
-      $pilihan_kerja = $pilihan_kerja . $hari_libur[$i] . ",";
-    }
+  $hari_libur = is_array($_POST['hari_libur'] ?? null) ? $_POST['hari_libur'] : [];
+  $pilihan_kerja = implode(',', array_map('intval', $hari_libur));
+  $lokasi = trim($_POST['lokasi'] ?? '');
+
+  $stmt = mysqli_prepare($mysqli, "INSERT INTO cabang_gedung(lokasi, jam_masuk, jam_pulang, istirahat_mulai, istirahat_selesai, hari_libur, zona_waktu) VALUES(?, ?, ?, ?, ?, ?, ?)");
+  if ($stmt) {
+    $zona_str = (string)$zona_waktu;
+    mysqli_stmt_bind_param($stmt, "sssssss", $lokasi, $jam_masuk, $jam_pulang, $istirahat_mulai, $istirahat_selesai, $pilihan_kerja, $zona_str);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    $successAdd = 1;
   }
-
-  $result = mysqli_query($mysqli, "INSERT INTO cabang_gedung(lokasi,jam_masuk,jam_pulang,istirahat_mulai,istirahat_selesai,hari_libur,zona_waktu) VALUES('{$_POST['lokasi']}','$jam_masuk','$jam_pulang','$istirahat_mulai','$istirahat_selesai','$pilihan_kerja','{$_POST['zona_waktu']}')");
-  $successAdd = 1;
 }
 
 if (isset($_POST['ubah'])) {
-  if ($_POST['zona_waktu'] == 1) {
+  $zona_waktu = (int)($_POST['zona_waktu'] ?? 1);
+  if ($zona_waktu == 1) {
     $seconds = "-25200 seconds";
-  } else if ($_POST['zona_waktu'] == 2) {
+  } else if ($zona_waktu == 2) {
     $seconds = "-28800 seconds";
   } else {
     $seconds = "-32400 seconds";
   }
 
-  $jam_masuk = date('H:i:s', strtotime($seconds, strtotime(date($_POST['jam_masuk']))));
-  $istirahat_mulai = date('H:i:s', strtotime($seconds, strtotime(date($_POST['istirahat_mulai']))));
-  $istirahat_selesai = date('H:i:s', strtotime($seconds, strtotime(date($_POST['istirahat_selesai']))));
-  $jam_pulang = date('H:i:s', strtotime($seconds, strtotime(date($_POST['jam_pulang']))));
+  $jam_masuk = date('H:i:s', strtotime($seconds, strtotime($_POST['jam_masuk'] ?? '08:00:00')));
+  $istirahat_mulai = date('H:i:s', strtotime($seconds, strtotime($_POST['istirahat_mulai'] ?? '12:00:00')));
+  $istirahat_selesai = date('H:i:s', strtotime($seconds, strtotime($_POST['istirahat_selesai'] ?? '13:00:00')));
+  $jam_pulang = date('H:i:s', strtotime($seconds, strtotime($_POST['jam_pulang'] ?? '17:00:00')));
 
+  $hari_libur = is_array($_POST['hari_libur'] ?? null) ? $_POST['hari_libur'] : [];
+  $pilihan_kerja = implode(',', array_map('intval', $hari_libur));
+  $lokasi = trim($_POST['lokasi'] ?? '');
+  $id = (int)($_POST['id'] ?? 0);
 
-  $hari_libur = $_POST['hari_libur'];
-  $pilihan_kerja = "";
-  for ($i = 0; $i < count($hari_libur); $i++) {
-    if ($i == count($hari_libur) - 1) {
-      $pilihan_kerja = $pilihan_kerja . $hari_libur[$i];
-    } else {
-      $pilihan_kerja = $pilihan_kerja . $hari_libur[$i] . ",";
-    }
+  $stmt = mysqli_prepare($mysqli, "UPDATE cabang_gedung SET lokasi = ?, jam_masuk = ?, jam_pulang = ?, istirahat_mulai = ?, istirahat_selesai = ?, hari_libur = ?, zona_waktu = ? WHERE id = ?");
+  if ($stmt) {
+    $zona_str = (string)$zona_waktu;
+    mysqli_stmt_bind_param($stmt, "sssssssi", $lokasi, $jam_masuk, $jam_pulang, $istirahat_mulai, $istirahat_selesai, $pilihan_kerja, $zona_str, $id);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    $successEdit = 1;
   }
-
-  $result = mysqli_query($mysqli, "UPDATE cabang_gedung SET lokasi='{$_POST['lokasi']}',jam_masuk='$jam_masuk',jam_pulang='$jam_pulang',istirahat_mulai='$istirahat_mulai',istirahat_selesai='$istirahat_selesai',hari_libur='$pilihan_kerja',zona_waktu='{$_POST['zona_waktu']}' WHERE id='{$_POST['id']}'");
-  $successEdit = 1;
 }
 
 if (isset($_GET['id'])) {
-  $nama = getAnyTampil($mysqli, 'lokasi', 'cabang_gedung', 'id', $_GET['id']);
-  $aktif = getAnyTampil($mysqli, 'aktif', 'cabang_gedung', 'id', $_GET['id']);
+  $id_target = (int)$_GET['id'];
+  $nama = getAnyTampil($mysqli, 'lokasi', 'cabang_gedung', 'id', $id_target);
+  $aktif = getAnyTampil($mysqli, 'aktif', 'cabang_gedung', 'id', $id_target);
   if ($aktif == 1) {
     $aktif = 0;
     $aktifText = "non-aktif";
@@ -69,8 +73,14 @@ if (isset($_GET['id'])) {
     $aktif = 1;
     $aktifText = "aktif";
   }
-  $result = mysqli_query($mysqli, "UPDATE cabang_gedung SET aktif='$aktif' WHERE id='{$_GET['id']}'");
-  $successDelete = 1;
+  $stmt = mysqli_prepare($mysqli, "UPDATE cabang_gedung SET aktif = ? WHERE id = ?");
+  if ($stmt) {
+    $aktif_str = (string)$aktif;
+    mysqli_stmt_bind_param($stmt, "si", $aktif_str, $id_target);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    $successDelete = 1;
+  }
 }
 
 $result = mysqli_query($mysqli, "SELECT * FROM cabang_gedung");

@@ -1,26 +1,50 @@
 <?php
 require_once("../../etc/config.php");
 require_once("../../etc/function.php");
+require_once("../../session.php");
 
 if (isset($_POST['tambah'])) {
-  $result = mysqli_query($mysqli, "INSERT INTO cuti(nomor_induk,tanggal) VALUES('{$_POST['nomor_induk']}','{$_POST['tanggal']}')");
-  $successAdd = 1;
+  $nomor_induk = trim($_POST['nomor_induk'] ?? '');
+  $tanggal = trim($_POST['tanggal'] ?? '');
+
+  $stmt = mysqli_prepare($mysqli, "INSERT INTO cuti(nomor_induk, tanggal) VALUES(?, ?)");
+  if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "ss", $nomor_induk, $tanggal);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    $successAdd = 1;
+  }
 }
 
 if (isset($_POST['ubah'])) {
-  $result = mysqli_query($mysqli, "UPDATE cuti SET nomor_induk='{$_POST['nomor_induk']}',tanggal='{$_POST['tanggal']}' WHERE id='{$_POST['id']}'");
-  $successEdit = 1;
+  $nomor_induk = trim($_POST['nomor_induk'] ?? '');
+  $tanggal = trim($_POST['tanggal'] ?? '');
+  $id = (int)($_POST['id'] ?? 0);
+
+  $stmt = mysqli_prepare($mysqli, "UPDATE cuti SET nomor_induk = ?, tanggal = ? WHERE id = ?");
+  if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "ssi", $nomor_induk, $tanggal, $id);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    $successEdit = 1;
+  }
 }
 
 if (isset($_GET['id'])) {
-  $nama = getAnyTampil($mysqli, 'nomor_induk', 'cuti', 'id', $_GET['id']);
-  $tanggal = getAnyTampil($mysqli, 'tanggal', 'cuti', 'id', $_GET['id']);
+  $id_target = (int)$_GET['id'];
+  $nama = getAnyTampil($mysqli, 'nomor_induk', 'cuti', 'id', $id_target);
+  $tanggal = getAnyTampil($mysqli, 'tanggal', 'cuti', 'id', $id_target);
 
-  $result = mysqli_query($mysqli, "DELETE FROM cuti WHERE id='{$_GET['id']}'");
-  $successDelete = 1;
+  $stmt = mysqli_prepare($mysqli, "DELETE FROM cuti WHERE id = ?");
+  if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "i", $id_target);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    $successDelete = 1;
+  }
 }
 
-$result = mysqli_query($mysqli, "SELECT * FROM cuti limit 500");
+$result = mysqli_query($mysqli, "SELECT * FROM cuti LIMIT 500");
 ?>
 
 <!DOCTYPE html>

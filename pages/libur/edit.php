@@ -1,8 +1,22 @@
 <?php
 require_once("../../etc/config.php");
 require_once("../../etc/function.php");
+require_once("../../session.php");
 
-$result =  mysqli_fetch_row(mysqli_query($mysqli, "SELECT * FROM libur_khusus where id = '{$_GET['id']}'"));
+$id_target = (int)($_GET['id'] ?? 0);
+$stmt = mysqli_prepare($mysqli, "SELECT id, tanggal, keterangan FROM libur_khusus WHERE id = ? LIMIT 1");
+$result = null;
+if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "i", $id_target);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+    $result = mysqli_fetch_row($res);
+    mysqli_stmt_close($stmt);
+}
+
+if (!$result) {
+    die("Data libur khusus tidak ditemukan.");
+}
 ?>
 
 <!DOCTYPE html>

@@ -1,63 +1,116 @@
 <?php
+require_once(__DIR__ . "/etc/config.php");
+require_once(__DIR__ . "/etc/function.php");
+
+// Pastikan parameter GET tag dikirim
 if (isset($_GET['tag'])) {
-    //ambil waktu UTC, letakan di awal agar mengurangi jeda waktu antara data terkirim dan data diproses
     $waktu = gmdate("Y-m-d H:i:s");
 
-    //Variabel basis data
-    $databaseHost = 'localhost';
-    $databaseName = 'absensi';
-    $databaseUsername = 'root';
-    $databasePassword = '';
+    $idmesin = trim($_GET['idmesin'] ?? '');
+    $tag = trim($_GET['tag'] ?? '');
+    $kategori = (int)($_GET['kategori'] ?? 0);
 
-    $mysqli = mysqli_connect($databaseHost, $databaseUsername, $databasePassword, $databaseName);
-
-    $idmesin = $_GET['idmesin'];
-    $tag = $_GET['tag'];
+    // Ambil nomor induk dan cabang berdasarkan tag (prepared statements)
     $nomor_induk = getNomorInduk($mysqli, $tag);
-    $kategori = $_GET['kategori'];
+    $cabang_id = getCabangGedung($mysqli, $tag);
 
-    //ambil jam absen maksimal
-    if ($kategori == 1) {
-        $jam_maksimal = getAbsenMaks($mysqli, "jam_masuk", getCabangGedung($mysqli, $tag));
-    } else if ($kategori == 2) {
-        $jam_maksimal = getAbsenMaks($mysqli, "istirahat_mulai", getCabangGedung($mysqli, $tag));
-    } else if ($kategori == 3) {
-        $jam_maksimal = getAbsenMaks($mysqli, "istirahat_selesai", getCabangGedung($mysqli, $tag));
-    } else if ($kategori == 4) {
-        $jam_maksimal = getAbsenMaks($mysqli, "jam_pulang", getCabangGedung($mysqli, $tag));
+    if (!$nomor_induk) {
+        http_response_code(404);
+        die("Tag tidak terdaftar");
+    }
+
+    // Tentukan kolom jam maksimal berdasarkan kategori
+    $kolom_kategori = [
+        1 => "jam_masuk",
+        2 => "istirahat_mulai",
+        3 => "istirahat_selesai",
+        4 => "jam_pulang"
+    ];
+
+    if (!isset($kolom_kategori[$kategori])) {
+        http_response_code(400);
+        die("Kategori tidak valid");
+    }
+
+    $jam_maksimal = getAbsenMaks($mysqli, $kolom_kategori[$kategori], $cabang_id);
+    if (!$jam_maksimal) {
+        $jam_maksimal = "00:00:00";
     }
 
     $maksimal = gmdate("Y-m-d $jam_maksimal");
-    
-    // Statement SQL
-    $sql = "INSERT INTO absensi (nomor_induk, absen, absen_maks, kategori, idmesin)
-    VALUES ('$nomor_induk','$waktu', '$maksimal', '$kategori', '$idmesin')";
 
-    $result = mysqli_query($mysqli, $sql);
+    // Simpan data absensi menggunakan Prepared Statements
+    $stmt = mysqli_prepare(
+        $mysqli,
+        "INSERT INTO absensi (nomor_induk, absen, absen_maks, kategori, idmesin) VALUES (?, ?, ?, ?, ?)"
+    );
 
-    if (!$result) {
-        die('Query salah: ' . mysqli_error($conn));
+    if ($stmt) {
+        $kat_str = (string)$kategori;
+        mysqli_stmt_bind_param($stmt, "sssss", $nomor_induk, $waktu, $maksimal, $kat_str, $idmesin);
+        if (mysqli_stmt_execute($stmt)) {
+            echo "BERHASIL";
+        } else {
+            http_response_code(500);
+            echo "Gagal mencatat absensi: " . mysqli_stmt_error($stmt);
+        }
+        mysqli_stmt_close($stmt);
+    } else {
+        http_response_code(500);
+        echo "Kesalahan database: " . mysqli_error($mysqli);
     }
 }
 
-//ambil nomor induk berdasarkan tag
 function getNomorInduk($mysqli, $tag)
 {
-    $sql = "SELECT nomor_induk FROM pengguna WHERE tag = '$tag'";
-    $result = mysqli_fetch_row(mysqli_query($mysqli, $sql));
-    return $result['0'];
+    $stmt = mysqli_prepare($mysqli, "SELECT nomor_induk FROM pengguna WHERE tag = ? LIMIT 1");
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "s", $tag);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        if ($row = mysqli_fetch_row($result)) {
+            mysqli_stmt_close($stmt);
+            return $row[0];
+        }
+        mysqli_stmt_close($stmt);
+    }
+    return null;
 }
 
 function getCabangGedung($mysqli, $tag)
 {
-    $sql = "SELECT cabang_gedung FROM pengguna WHERE tag = '$tag'";
-    $result = mysqli_fetch_row(mysqli_query($mysqli, $sql));
-    return $result['0'];
+    $stmt = mysqli_prepare($mysqli, "SELECT cabang_gedung FROM pengguna WHERE tag = ? LIMIT 1");
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "s", $tag);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        if ($row = mysqli_fetch_row($result)) {
+            mysqli_stmt_close($stmt);
+            return $row[0];
+        }
+        mysqli_stmt_close($stmt);
+    }
+    return null;
 }
 
-function getAbsenMaks($mysqli, $absen, $id)
+function getAbsenMaks($mysqli, $kolom, $id)
 {
-    $sql = "SELECT $absen FROM cabang_gedung WHERE id = '$id'";
-    $result = mysqli_fetch_row(mysqli_query($mysqli, $sql));
-    return $result['0'];
+    // Whitelist kolom yang diizinkan
+    $allowed_cols = ["jam_masuk", "istirahat_mulai", "istirahat_selesai", "jam_pulang"];
+    if (!in_array($kolom, $allowed_cols, true)) {
+        return null;
+    }
+
+    $stmt = mysqli_prepare($mysqli, "SELECT $kolom FROM cabang_gedung WHERE id = ? LIMIT 1");
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "s", $id);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        if ($row = mysqli_fetch_row($result)) {
+            mysqli_stmt_close($stmt);
+            return $row[0];
+        }
+        mysqli_stmt_close($stmt);
+    }
+    return null;
 }

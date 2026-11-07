@@ -1,15 +1,43 @@
 <?php
 require_once("../../etc/config.php");
-include('../../session.php');
 require_once("../../etc/function.php");
+require_once("../../session.php");
 
 if (isset($_POST['ubah'])) {
-    $pass = md5($_POST['password']);
-    $result = mysqli_query($mysqli, "UPDATE pengguna SET nama='{$_POST['nama']}', password='$pass' WHERE nomor_induk='{$_SESSION['nomor_induk']}'");
-    $successEdit = 1;
+    $nama = trim($_POST['nama'] ?? '');
+    $password_input = trim($_POST['password'] ?? '');
+
+    if ($password_input !== '') {
+        $pass = password_hash($password_input, PASSWORD_DEFAULT);
+        $stmt = mysqli_prepare($mysqli, "UPDATE pengguna SET nama = ?, password = ? WHERE nomor_induk = ?");
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "sss", $nama, $pass, $_SESSION['nomor_induk']);
+            mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
+            $_SESSION['nama'] = $nama;
+            $successEdit = 1;
+        }
+    } else {
+        $stmt = mysqli_prepare($mysqli, "UPDATE pengguna SET nama = ? WHERE nomor_induk = ?");
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "ss", $nama, $_SESSION['nomor_induk']);
+            mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
+            $_SESSION['nama'] = $nama;
+            $successEdit = 1;
+        }
+    }
 }
 
-$result =  mysqli_fetch_row(mysqli_query($mysqli, "SELECT * FROM pengguna where nomor_induk = '{$_SESSION['nomor_induk']}'"));
+$stmt = mysqli_prepare($mysqli, "SELECT nomor_induk, nama, tag, jabatan_status, cabang_gedung FROM pengguna WHERE nomor_induk = ? LIMIT 1");
+$result = null;
+if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "s", $_SESSION['nomor_induk']);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+    $result = mysqli_fetch_row($res);
+    mysqli_stmt_close($stmt);
+}
 ?>
 
 <!DOCTYPE html>

@@ -1,8 +1,22 @@
 <?php
 require_once("../../etc/config.php");
 require_once("../../etc/function.php");
+require_once("../../session.php");
 
-$result =  mysqli_fetch_row(mysqli_query($mysqli, "SELECT * FROM jabatan_status where id = '{$_GET['id']}'"));
+$id_target = (int)($_GET['id'] ?? 0);
+$stmt = mysqli_prepare($mysqli, "SELECT id, jabatan_status, hak_akses, aktif FROM jabatan_status WHERE id = ? LIMIT 1");
+$result = null;
+if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "i", $id_target);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+    $result = mysqli_fetch_row($res);
+    mysqli_stmt_close($stmt);
+}
+
+if (!$result) {
+    die("Data jabatan/status tidak ditemukan.");
+}
 ?>
 
 <!DOCTYPE html>

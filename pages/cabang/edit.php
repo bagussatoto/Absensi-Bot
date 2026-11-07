@@ -1,24 +1,40 @@
 <?php
 require_once("../../etc/config.php");
 require_once("../../etc/function.php");
+require_once("../../session.php");
 
-$result =  mysqli_fetch_row(mysqli_query($mysqli, "SELECT * FROM cabang_gedung where id = '{$_GET['id']}'"));
+$id_target = (int)($_GET['id'] ?? 0);
+$stmt = mysqli_prepare($mysqli, "SELECT id, lokasi, jam_masuk, jam_pulang, istirahat_mulai, istirahat_selesai, hari_libur, zona_waktu, aktif FROM cabang_gedung WHERE id = ? LIMIT 1");
+$result = null;
 
-if ($result[7] == 1) {
+if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "i", $id_target);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+    $result = mysqli_fetch_row($res);
+    mysqli_stmt_close($stmt);
+}
+
+if (!$result) {
+    die("Data cabang/gedung tidak ditemukan.");
+}
+
+$zona_waktu = (int)($result[7] ?? 1);
+if ($zona_waktu == 1) {
     $zona = "WIB";
     $seconds = "+25200 seconds";
-} elseif ($result[7] == 2) {
+} elseif ($zona_waktu == 2) {
     $zona = "WITA";
     $seconds = "+28800 seconds";
-} elseif ($result[7] == 3) {
+} else {
     $zona = "WIT";
     $seconds = "+32400 seconds";
 }
 
-$jam_masuk = date('H:i:s', strtotime($seconds, strtotime(date($result[2]))));
-$istirahat_mulai = date('H:i:s', strtotime($seconds, strtotime(date($result[4]))));
-$istirahat_selesai = date('H:i:s', strtotime($seconds, strtotime(date($result[5]))));
-$jam_pulang = date('H:i:s', strtotime($seconds, strtotime(date($result[3]))));
+$jam_masuk = date('H:i:s', strtotime($seconds, strtotime((string)$result[2])));
+$istirahat_mulai = date('H:i:s', strtotime($seconds, strtotime((string)$result[4])));
+$istirahat_selesai = date('H:i:s', strtotime($seconds, strtotime((string)$result[5])));
+$jam_pulang = date('H:i:s', strtotime($seconds, strtotime((string)$result[3])));
 ?>
 
 <!DOCTYPE html>

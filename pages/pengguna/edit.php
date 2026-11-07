@@ -1,8 +1,22 @@
 <?php
 require_once("../../etc/config.php");
 require_once("../../etc/function.php");
+require_once("../../session.php");
 
-$result =  mysqli_fetch_row(mysqli_query($mysqli, "SELECT * FROM pengguna where nomor_induk = '{$_GET['id']}'"));
+$id_target = trim($_GET['id'] ?? '');
+$stmt = mysqli_prepare($mysqli, "SELECT nomor_induk, nama, tag, jabatan_status, cabang_gedung FROM pengguna WHERE nomor_induk = ? LIMIT 1");
+$result = null;
+if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "s", $id_target);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+    $result = mysqli_fetch_row($res);
+    mysqli_stmt_close($stmt);
+}
+
+if (!$result) {
+    die("Pengguna tidak ditemukan.");
+}
 ?>
 
 <!DOCTYPE html>
@@ -53,16 +67,16 @@ $result =  mysqli_fetch_row(mysqli_query($mysqli, "SELECT * FROM pengguna where 
                                 <!-- /.card-header -->
                                 <!-- form start -->
                                 <form method="post" action="index.php">
-                                    <input type="hidden" name="nomor_induk_lama" value="<?= $result[0] ?>">
-                                    <input type="hidden" name="nama_lama" value="<?= $result[1] ?>">
+                                    <input type="hidden" name="nomor_induk_lama" value="<?= e($result[0]) ?>">
+                                    <input type="hidden" name="nama_lama" value="<?= e($result[1]) ?>">
                                     <div class="card-body">
                                         <div class="form-group">
                                             <label>Nomor Induk</label>
-                                            <input type="text" class="form-control" name="nomor_induk" placeholder="Nomor Induk / Identitas Pengguna" value="<?= $result[0] ?>" autofocus required>
+                                            <input type="text" class="form-control" name="nomor_induk" placeholder="Nomor Induk / Identitas Pengguna" value="<?= e($result[0]) ?>" autofocus required>
                                         </div>
                                         <div class="form-group">
                                             <label>Nama</label>
-                                            <input type="text" class="form-control" name="nama" placeholder="Nama Lengkap" value="<?= $result[1] ?>" required>
+                                            <input type="text" class="form-control" name="nama" placeholder="Nama Lengkap" value="<?= e($result[1]) ?>" required>
                                         </div>
                                         <div class="form-group">
                                             <label>Jabatan / Status</label>
@@ -74,7 +88,7 @@ $result =  mysqli_fetch_row(mysqli_query($mysqli, "SELECT * FROM pengguna where 
                                         </div>
                                         <div class="form-group">
                                             <label>Tag</label>
-                                            <input type="text" name="tag" class="form-control" value="<?= $result[2] ?>" required>
+                                            <input type="text" name="tag" class="form-control" value="<?= e($result[2]) ?>" required>
                                         </div>
                                     </div>
                                     <!-- /.card-body -->

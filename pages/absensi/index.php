@@ -1,41 +1,61 @@
 <?php
 require_once("../../etc/config.php");
 require_once("../../etc/function.php");
+require_once("../../session.php");
 
 if (!isset($_POST['tampilkan'])) {
-  $result = mysqli_query($mysqli, "SELECT * FROM absensi limit 500");
+  $result = mysqli_query($mysqli, "SELECT * FROM absensi ORDER BY absen DESC LIMIT 500");
   $formCabang = 1;
 } else {
-  if ($_POST['kategori'] == 0) {
-    $result = mysqli_query($mysqli, "
+  $cabang_gedung = trim($_POST['cabang_gedung'] ?? '');
+  $awal = trim($_POST['awal'] ?? '');
+  $akhir = trim($_POST['akhir'] ?? '');
+  $kategori = (int)($_POST['kategori'] ?? 0);
+
+  if ($kategori === 0) {
+    $stmt = mysqli_prepare($mysqli, "
       SELECT absensi.nomor_induk, pengguna.cabang_gedung, absensi.absen, absensi.kategori, absensi.idmesin
       FROM pengguna
-      INNER JOIN absensi ON absensi.nomor_induk=pengguna.nomor_induk
-      WHERE pengguna.cabang_gedung = '{$_POST['cabang_gedung']}' AND (absensi.absen BETWEEN '{$_POST['awal']}' AND '{$_POST['akhir']}');
-      ");
+      INNER JOIN absensi ON absensi.nomor_induk = pengguna.nomor_induk
+      WHERE pengguna.cabang_gedung = ? AND (absensi.absen BETWEEN ? AND ?)
+      ORDER BY absensi.absen DESC
+    ");
+    if ($stmt) {
+      mysqli_stmt_bind_param($stmt, "sss", $cabang_gedung, $awal, $akhir);
+      mysqli_stmt_execute($stmt);
+      $result = mysqli_stmt_get_result($stmt);
+    }
   } else {
-    $result = mysqli_query($mysqli, "
-        SELECT absensi.nomor_induk, pengguna.cabang_gedung, absensi.absen, absensi.kategori, absensi.idmesin
-        FROM pengguna
-        INNER JOIN absensi ON absensi.nomor_induk=pengguna.nomor_induk
-        WHERE pengguna.cabang_gedung = '{$_POST['cabang_gedung']}' AND absensi.kategori = '{$_POST['kategori']}' AND (absensi.absen BETWEEN '{$_POST['awal']}' AND '{$_POST['akhir']}');
-        ");
+    $stmt = mysqli_prepare($mysqli, "
+      SELECT absensi.nomor_induk, pengguna.cabang_gedung, absensi.absen, absensi.kategori, absensi.idmesin
+      FROM pengguna
+      INNER JOIN absensi ON absensi.nomor_induk = pengguna.nomor_induk
+      WHERE pengguna.cabang_gedung = ? AND absensi.kategori = ? AND (absensi.absen BETWEEN ? AND ?)
+      ORDER BY absensi.absen DESC
+    ");
+    if ($stmt) {
+      $kat_str = (string)$kategori;
+      mysqli_stmt_bind_param($stmt, "ssss", $cabang_gedung, $kat_str, $awal, $akhir);
+      mysqli_stmt_execute($stmt);
+      $result = mysqli_stmt_get_result($stmt);
+    }
   }
-  if ($_POST['kategori'] == 0) {
+
+  if ($kategori === 0) {
     $formKategori = "Semua Kategori";
   } else {
-    if ($_POST['kategori'] == 1) {
+    if ($kategori === 1) {
       $formKategori = "Masuk";
-    } elseif ($_POST['kategori'] == 2) {
-      $FormKategori = "Mulai Istirahat";
-    } elseif ($_POST['kategori'] == 3) {
+    } elseif ($kategori === 2) {
+      $formKategori = "Mulai Istirahat";
+    } elseif ($kategori === 3) {
       $formKategori = "Selesai Istirahat";
-    } elseif ($_POST['kategori'] == 4) {
+    } elseif ($kategori === 4) {
       $formKategori = "Pulang";
     }
   }
-  $valueKategori = $_POST['kategori'];
-  $formCabang = $_POST['cabang_gedung'];
+  $valueKategori = $kategori;
+  $formCabang = $cabang_gedung;
 }
 ?>
 
