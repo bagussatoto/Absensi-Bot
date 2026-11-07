@@ -129,7 +129,20 @@ if (!isset($_POST['tampilkan'])) {
                         </select>
                       </div>
                     </div>
-                    <button type="submit" name="tampilkan" class="btn btn-success">Tampilkan</button>
+                    <div class="d-flex align-items-center justify-content-between">
+                      <button type="submit" name="tampilkan" class="btn btn-success">
+                        <i class="fas fa-search mr-1"></i> Tampilkan
+                      </button>
+                      <?php
+                        $exportUrl = "export_csv.php?";
+                        if (isset($_POST['tampilkan'])) {
+                          $exportUrl .= "cabang_gedung=" . urlencode($formCabang) . "&awal=" . urlencode($_POST['awal']) . "&akhir=" . urlencode($_POST['akhir']) . "&kategori=" . urlencode($valueKategori);
+                        }
+                      ?>
+                      <a href="<?php echo $exportUrl; ?>" class="btn btn-primary" target="_blank">
+                        <i class="fas fa-file-excel mr-1"></i> Unduh Rekap (CSV/Excel)
+                      </a>
+                    </div>
                   </form>
                 </div>
                 <!-- /.card-header -->
